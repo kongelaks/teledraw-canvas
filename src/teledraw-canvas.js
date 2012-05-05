@@ -241,15 +241,13 @@
 		    			self.setTool('line');
 		    			break;
 		    		case 79: // o
-		    			self.setTool('ellipse');
-		    			//Canvas.getTool().setFill(e.shiftKey === true);
+		    			self.setTool((e.shiftKey ? 'filled-' : '')+'ellipse');
 		    			break;
 		    		case 80: // p
 		    			self.setTool('pencil');
 		    			break;
 		    		case 82: // r
-		    			self.setTool('rectangle');
-		    			//Canvas.getTool().setFill(e.shiftKey === true);
+		    			self.setTool((e.shiftKey ? 'filled-' : '')+'rectangle');
 		    			break;
 		    		case 90: // z
 		    			if (state.mouseDown) {

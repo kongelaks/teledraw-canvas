@@ -1,7 +1,7 @@
 /*!
 
 	Teledraw Canvas
-	Version 0.11.2 (http://semver.org/)
+	Version 0.12.0 (http://semver.org/)
 	Copyright 2012 Cameron Lakenen
 	
 	Permission is hereby granted, free of charge, to any person obtaining
@@ -1793,8 +1793,8 @@ Vector.create = function (o) {
 (function (TeledrawCanvas) {
 	var Util = function () { return Util; };
 	
-	Util.clear = function (canvas) {
-		var ctx = canvas.canvas ? canvas : canvas.getContext('2d');
+	Util.clear = function (ctx) {
+		var ctx = ctx.canvas ? ctx : /* (canvas) */ctx.getContext('2d');
 		ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
 	};
 	
@@ -2268,15 +2268,13 @@ Vector.create = function (o) {
 		    			self.setTool('line');
 		    			break;
 		    		case 79: // o
-		    			self.setTool('ellipse');
-		    			//Canvas.getTool().setFill(e.shiftKey === true);
+		    			self.setTool((e.shiftKey ? 'filled-' : '')+'ellipse');
 		    			break;
 		    		case 80: // p
 		    			self.setTool('pencil');
 		    			break;
 		    		case 82: // r
-		    			self.setTool('rectangle');
-		    			//Canvas.getTool().setFill(e.shiftKey === true);
+		    			self.setTool((e.shiftKey ? 'filled-' : '')+'rectangle');
 		    			break;
 		    		case 90: // z
 		    			if (state.mouseDown) {
@@ -2466,7 +2464,7 @@ Vector.create = function (o) {
 			dh = dctx.canvas.height,
 			sw = floor(dw / zoom),
 			sh = floor(dh / zoom);
-		dctx.clearRect(0, 0, dw, dh);
+		TeledrawCanvas.util.clear(dctx);
 		if (noTrigger !== true) this.trigger('display.update:before');
 		dctx.drawImage(this._canvas, off.x, off.y, sw, sh, 0, 0, dw, dh);
 		if (noTrigger !== true) this.trigger('display.update:after');
@@ -2540,9 +2538,8 @@ Vector.create = function (o) {
 	
 	// clears the canvas and (unless noCheckpoint===TRUE) pushes to the undoable history
 	APIprototype.clear = function (noCheckpoint) {
-	    var self = this,
-			ctx = self.ctx();
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	    var self = this;
+		TeledrawCanvas.util.clear(self.ctx());
 		if (noCheckpoint !== TRUE) {
 			self.history.checkpoint();
 		}
@@ -3197,6 +3194,21 @@ Vector.create = function (o) {
 		ctx.closePath();
 	}
 	
+
+	var FilledEllipse = TeledrawCanvas.Tool.createTool("filled-ellipse", "crosshair");
+	
+	FilledEllipse.prototype.preview = function () {
+		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
+		var ctx = canv.getContext('2d');
+		var stroke = new FilledEllipse.stroke(this.canvas, ctx);
+		stroke.first = { x: 0, y: 0 };
+		stroke.second = { x: canv.width, y: canv.height };
+		stroke.draw();
+		return canv;
+	};
+	_.extend(FilledEllipse.stroke.prototype, Ellipse.stroke.prototype);
+	FilledEllipse.prototype.fill = true;
+	
 })(TeledrawCanvas);
 
 /**
@@ -3250,7 +3262,7 @@ Vector.create = function (o) {
 	EyeDropper.prototype.preview = function () {
 		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
 		var ctx = canv.getContext('2d');
-		ctx.fillStyle = TeledrawCanvas.util.cssColor(this.color);
+		ctx.fillStyle = TeledrawCanvas.util.cssColor(this.color || [0,0,0,0]);
 		ctx.fillRect(0, 0, canv.width, canv.height);
 		return canv;
 	};
@@ -3308,12 +3320,16 @@ Vector.create = function (o) {
  */
 (function (TeledrawCanvas) {
 	var Fill = TeledrawCanvas.Tool.createTool("fill", "crosshair");
-	var abs = Math.abs;
+
+	Fill.prototype.preview = function () {
+		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
+		var ctx = canv.getContext('2d');
+		ctx.fillStyle = TeledrawCanvas.util.cssColor(this.canvas.getColor());
+		ctx.fillRect(0, 0, canv.width, canv.height);
+		return canv;
+	}
 	
 	Fill.blur = true;
-	Fill.stroke.prototype.bgColor = [255, 255, 255];
-	Fill.stroke.prototype.bgAlpha = 255;
-
 
 	Fill.stroke.prototype.end = function (target) {
 		var w = this.ctx.canvas.width, h = this.ctx.canvas.height;
@@ -3771,6 +3787,22 @@ Vector.create = function (o) {
 	    ctx.lineTo(first.x, second.y);
 	    ctx.lineTo(first.x, first.y);
 	}
+	
+	
+	var FilledRectangle = TeledrawCanvas.Tool.createTool("filled-rectangle", "crosshair");
+	
+	FilledRectangle.prototype.preview = function () {
+		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
+		var ctx = canv.getContext('2d');
+		var stroke = new FilledRectangle.stroke(this.canvas, ctx);
+		stroke.first = { x: 0, y: 0 };
+		stroke.second = { x: canv.width, y: canv.height };
+		stroke.draw();
+		return canv;
+	};
+	_.extend(FilledRectangle.stroke.prototype, Rectangle.stroke.prototype);
+	FilledRectangle.prototype.fill = true;
+	
 })(TeledrawCanvas);
 
 })();

@@ -21,7 +21,7 @@
 	EyeDropper.prototype.preview = function () {
 		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
 		var ctx = canv.getContext('2d');
-		ctx.fillStyle = TeledrawCanvas.util.cssColor(this.color);
+		ctx.fillStyle = TeledrawCanvas.util.cssColor(this.color || [0,0,0,0]);
 		ctx.fillRect(0, 0, canv.width, canv.height);
 		return canv;
 	};
