@@ -96,8 +96,11 @@
 		var canv = TeledrawCanvas.Tool.prototype.preview.apply(this, arguments);
 		var ctx = canv.getContext('2d');
 		var stroke = new FilledEllipse.stroke(this.canvas, ctx);
-		stroke.first = { x: 0, y: 0 };
-		stroke.second = { x: canv.width, y: canv.height };
+		stroke.tool = this;
+		var w = canv.width, h = canv.height;
+		stroke.first = { x: w*0.1, y: h*0.1 };
+		stroke.second = { x: w*0.9, y: h*0.9 };
+		console.log(stroke);
 		stroke.draw();
 		return canv;
 	};
